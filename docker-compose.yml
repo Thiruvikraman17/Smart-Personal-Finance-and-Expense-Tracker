@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: smart_finance_db
+    environment:
+      POSTGRES_USER: finance_user
+      POSTGRES_PASSWORD: finance_password
+      POSTGRES_DB: smart_finance_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smart_finance_backend
+    environment:
+      - DATABASE_URL=postgresql://finance_user:finance_password@postgres:5432/smart_finance_db
+      - SECRET_KEY=SUPER_SECRET_JWT_KEY_SMART_FINANCE_TRACKER_2026
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smart_finance_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  postgres_data:
